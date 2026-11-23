@@ -3,6 +3,7 @@ package jobqueue
 import (
 	"fmt"
 	"slices"
+	"sync"
 )
 
 type JobQueue struct {
@@ -10,6 +11,7 @@ type JobQueue struct {
 	size     int
 	capacity int
 	first    int
+	lock     sync.RWMutex
 }
 
 func (q *JobQueue) balloon() {
@@ -53,17 +55,23 @@ func (q *JobQueue) shrink() {
 }
 
 func (q *JobQueue) Clear() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
 	q.items = make([]any, q.capacity)
 	q.size = 0
 	q.first = 0
 }
 
 func (q *JobQueue) Contains(item any) bool {
-	return slices.Contains(q.items[q.first:], item)
+	q.lock.RLock()
+	defer q.lock.RUnlock()
+	return slices.Contains(q.ToSlice(), item)
 }
 
 func (q *JobQueue) Dequeue() (any, bool) {
-	if q.IsEmpty() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+	if q.size == 0 {
 		return nil, false
 	}
 
@@ -79,8 +87,10 @@ func (q *JobQueue) Dequeue() (any, bool) {
 }
 
 func (q *JobQueue) Enqueue(item any) {
+	q.lock.Lock()
+	defer q.lock.Unlock()
 
-	if q.IsFull() {
+	if q.size == q.capacity {
 		q.balloon()
 	}
 
@@ -90,21 +100,29 @@ func (q *JobQueue) Enqueue(item any) {
 }
 
 func (q *JobQueue) IsEmpty() bool {
+	q.lock.RLock()
+	defer q.lock.RUnlock()
 	return q.size == 0
 }
 
 func (q *JobQueue) IsFull() bool {
+	q.lock.RLock()
+	defer q.lock.RUnlock()
 	return q.size == q.capacity
 }
 
 func (q *JobQueue) Peek() any {
-	if !q.IsEmpty() {
+	q.lock.RLock()
+	defer q.lock.RUnlock()
+	if q.size > 0 {
 		return q.items[q.first]
 	}
 	return nil
 }
 
 func (q *JobQueue) ToSlice() []any {
+	q.lock.RLock()
+	defer q.lock.RUnlock()
 	temp_arr := make([]any, q.size)
 
 	for i := range q.size {

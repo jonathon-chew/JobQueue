@@ -13,7 +13,7 @@
 - Automatic shrinking when the queue is mostly empty
 - Stores values as `any`, allowing different Go value types
 
-This is a data-structure project rather than a concurrent worker pool. The current queue does not provide locking, job execution, persistence, or retry handling.
+This is a data-structure project rather than a concurrent worker pool. Queue operations are protected by a mutex, but the queue does not provide job execution, persistence, or retry handling.
 
 ## Installation
 

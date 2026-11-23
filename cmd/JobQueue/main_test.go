@@ -2,6 +2,7 @@ package jobqueue
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -327,5 +328,38 @@ func TestToSliceReturnsCopy(t *testing.T) {
 
 	if q.Peek() != "A" {
 		t.Error("ToSlice should return an independent copy")
+	}
+}
+
+func TestConcurrent(t *testing.T) {
+	q := NewJobQueue(100)
+	var producers sync.WaitGroup
+
+	for i := range 100 {
+		producers.Add(1)
+		go func(i int) {
+			defer producers.Done()
+			q.Enqueue(i)
+		}(i)
+	}
+	producers.Wait()
+
+	seen := make(map[int]bool, 100)
+	for range 100 {
+		number, ok := q.Dequeue()
+		if !ok {
+			t.Fatal("queue became empty before all items were dequeued")
+		}
+		n, ok := number.(int)
+		if !ok || n < 0 || n >= 100 || seen[n] {
+			t.Fatalf("unexpected or duplicate item: %v", number)
+		}
+		seen[n] = true
+	}
+
+	for i := range 100 {
+		if !seen[i] {
+			t.Errorf("item %d was not enqueued", i)
+		}
 	}
 }
