@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestQueue verifies basic FIFO behaviour across enqueue and dequeue operations.
 func TestQueue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -44,6 +45,7 @@ func TestQueue(t *testing.T) {
 	}
 }
 
+// TestNewJobQueue verifies that a new queue has the requested capacity and is empty.
 func TestNewJobQueue(t *testing.T) {
 	q := NewJobQueue(5)
 
@@ -60,6 +62,7 @@ func TestNewJobQueue(t *testing.T) {
 	}
 }
 
+// TestEnqueue verifies that items are appended in order and capacity is reported correctly.
 func TestEnqueue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -82,6 +85,7 @@ func TestEnqueue(t *testing.T) {
 	}
 }
 
+// TestDequeue verifies that items are removed in FIFO order.
 func TestDequeue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -108,6 +112,7 @@ func TestDequeue(t *testing.T) {
 	}
 }
 
+// TestDequeueEmptyQueue verifies dequeue behaviour when no items are available.
 func TestDequeueEmptyQueue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -122,6 +127,7 @@ func TestDequeueEmptyQueue(t *testing.T) {
 	}
 }
 
+// TestPeek verifies that peeking returns the oldest item without removing it.
 func TestPeek(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -137,6 +143,7 @@ func TestPeek(t *testing.T) {
 	}
 }
 
+// TestPeekEmptyQueue verifies that peeking an empty queue returns nil.
 func TestPeekEmptyQueue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -145,6 +152,7 @@ func TestPeekEmptyQueue(t *testing.T) {
 	}
 }
 
+// TestCircularQueue verifies FIFO order after the circular buffer wraps once.
 func TestCircularQueue(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -165,10 +173,11 @@ func TestCircularQueue(t *testing.T) {
 	}
 }
 
+// TestCircularQueueMultipleWraps verifies FIFO order across repeated wraparounds.
 func TestCircularQueueMultipleWraps(t *testing.T) {
 	q := NewJobQueue(4)
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		q.Enqueue(i)
 
 		if i >= 4 {
@@ -185,6 +194,7 @@ func TestCircularQueueMultipleWraps(t *testing.T) {
 	}
 }
 
+// TestBalloon verifies that a full queue grows when another item is enqueued.
 func TestBalloon(t *testing.T) {
 	q := NewJobQueue(2)
 
@@ -203,6 +213,7 @@ func TestBalloon(t *testing.T) {
 	}
 }
 
+// TestBalloonAfterWraparound verifies growth preserves order after wraparound.
 func TestBalloonAfterWraparound(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -230,6 +241,7 @@ func TestBalloonAfterWraparound(t *testing.T) {
 	}
 }
 
+// TestShrink verifies that a mostly empty queue reduces its capacity.
 func TestShrink(t *testing.T) {
 	q := NewJobQueue(8)
 
@@ -245,14 +257,15 @@ func TestShrink(t *testing.T) {
 	}
 }
 
+// TestShrinkAfterWraparound verifies shrinking preserves order after wraparound.
 func TestShrinkAfterWraparound(t *testing.T) {
 	q := NewJobQueue(8)
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		q.Enqueue(i)
 	}
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		q.Dequeue()
 	}
 
@@ -270,6 +283,7 @@ func TestShrinkAfterWraparound(t *testing.T) {
 	}
 }
 
+// TestClear verifies that clearing removes items and preserves capacity.
 func TestClear(t *testing.T) {
 	q := NewJobQueue(5)
 
@@ -295,6 +309,7 @@ func TestClear(t *testing.T) {
 	}
 }
 
+// TestContains verifies membership checks before and after dequeue operations.
 func TestContains(t *testing.T) {
 	q := NewJobQueue(4)
 
@@ -317,6 +332,7 @@ func TestContains(t *testing.T) {
 	}
 }
 
+// TestToSliceReturnsCopy verifies that ToSlice does not expose queue storage.
 func TestToSliceReturnsCopy(t *testing.T) {
 	q := NewJobQueue(3)
 
@@ -331,6 +347,7 @@ func TestToSliceReturnsCopy(t *testing.T) {
 	}
 }
 
+// TestConcurrent verifies that concurrent enqueues retain every item exactly once.
 func TestConcurrent(t *testing.T) {
 	q := NewJobQueue(100)
 	var producers sync.WaitGroup
