@@ -43,11 +43,7 @@ func (q *JobQueue) shrink() {
 		return
 	}
 
-	new_capacity := q.capacity / 2
-
-	if new_capacity < 1 {
-		new_capacity = 1
-	}
+	new_capacity := max(q.capacity/2, 1)
 
 	new_q := make([]any, new_capacity)
 
